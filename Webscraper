@@ -1,0 +1,55 @@
+import requests
+from bs4 import BeautifulSoup
+import time
+
+response = requests.get('https://httpbin.org/user-agent')
+user_agent = response.json()['user-agent']
+
+def getScholarData(url, user_agent=user_agent):
+    try:
+        headers = {
+            "User-Agent": user_agent
+        }
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        scholar_results = []
+
+        for el in soup.select(".gs_r")[:3]:  # Limit to top 3 results
+            scholar_results.append({
+                "title": el.select(".gs_rt")[0].text if el.select(".gs_rt") else None,
+                "title_link": el.select(".gs_rt a")[0]["href"] if el.select(".gs_rt a") else "",
+                "id": el.select(".gs_rt a")[0]["id"] if el.select(".gs_rt a") else "",
+                "displayed_link": el.select(".gs_a")[0].text if el.select(".gs_a") else "",
+                "snippet": el.select(".gs_rs")[0].text.replace("\n", "") if el.select(".gs_rs") else "",
+                "cited_by_count": el.select(".gs_nph+ a")[0].text if el.select(".gs_nph+ a") else "",
+                "cited_link": "https://scholar.google.com" + el.select(".gs_nph+ a")[0]["href"] if el.select(".gs_nph+ a") and len(el.select(".gs_nph+ a")) > 0 else None,
+                "versions_count": el.select("a~ a+ .gs_nph")[0].text if el.select("a~ a+ .gs_nph") and len(el.select("a~ a+ .gs_nph")) > 0 else "",
+                "versions_link": "https://scholar.google.com" + el.select("a~ a+ .gs_nph")[0]["href"] if el.select("a~ a+ .gs_nph") and len(el.select("a~ a+ .gs_nph")) > 0 and el.select("a~ a+ .gs_nph")[0].text else "",
+            })
+        for i in range(len(scholar_results)):
+            scholar_results[i] = {key: value for key, value in scholar_results[i].items() if value != "" and value is not None}
+
+        # Debug print statement
+        print(f"Results from {url}: {scholar_results}")
+
+        return scholar_results
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+    except Exception as e:
+        print(f"An error occurred: {e}")
+
+def getTopResultsForTopics(topics):
+    all_results = {}
+    base_url = "https://www.google.com/scholar?q={}&hl=en"
+    for topic in topics:
+        url = base_url.format(topic.replace(" ", "+"))
+        results = getScholarData(url)
+        all_results[topic] = results
+        # Debug print statement
+        print(f"Fetched results for topic {topic}: {results}")
+    return all_results
+
+topics = ["Medical Devices","Artificial Intelligence"]
+top_results = getTopResultsForTopics(topics)
+print(top_results)

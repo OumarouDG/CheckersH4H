@@ -1,4 +1,5 @@
 import './App.css';
+import Navbar from 'frontend/src/component/Navbar/Navbar.jsx';
 
 function App() {
   return (

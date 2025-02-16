@@ -1,5 +1,6 @@
 import React from "react";
 import Navbar from "../component/Navbar/Navbar"; 
+import { useNavigate } from "react-router-dom";
 import { Box, Icon } from "@mui/material"; 
 import HowToVoteIcon from '@mui/icons-material/HowToVote'; 
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety'; 
@@ -55,10 +56,16 @@ const jsonData = [
 ];
 
 const ModernPage = () => {
+  const navigate = useNavigate();
+
+  const handleItemClick = async (title) => {
+    navigate(`/info?query=${encodeURIComponent(title)}`);
+  };
+
   return (
     <div style={{ backgroundColor: "black", height: "100vh", color: "white" }}>
       <Navbar />
-      <div style={{ paddingTop: "50px", paddingLeft:"20px" }}>
+      <div style={{ paddingTop: "50px", paddingLeft: "20px" }}>
         <h1>Trending Misinformation Topics</h1>
         <p>Here are some claims that need to be fact-checked to help you understand the truth!</p>
         <Box
@@ -74,6 +81,7 @@ const ModernPage = () => {
           {jsonData.map((item, index) => (
             <Box
               key={index}
+              onClick={() => handleItemClick(item.title)}
               sx={{
                 display: "flex",
                 alignItems: "center",
@@ -82,7 +90,13 @@ const ModernPage = () => {
                 borderRadius: "8px",
                 border: "2px solid white",
                 marginBottom: "16px",
-                color: "white"
+                color: "white",
+                cursor: "pointer",
+                "&:hover": {
+                  backgroundColor: "#2a2a2a",
+                  transform: "scale(1.00)",
+                  transition: "transform 0.2s ease-in-out"
+                }
               }}
             >
               <Box sx={{ marginRight: "12px" }}>

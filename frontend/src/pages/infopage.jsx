@@ -67,7 +67,7 @@ const InfoPage = () => {
   return (
     <div style={{
       minHeight: "100vh",
-      minWidth: "100vw",
+      minWidth: "400px",
       margin: 0,
       paddingTop: 54,
       display: "flex",

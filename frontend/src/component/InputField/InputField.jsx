@@ -11,28 +11,14 @@ const InputField = () => {
     setQuery(e.target.value);
   };
 
-  const handleRunClick = async () => {
+  const handleRunClick = () => {
     if (!query) {
       alert("Please enter a claim.");
       return;
     }
 
-    try {
-      const response = await fetch("http://127.0.0.1:8000/master-query/userquery/", {  // Use the correct endpoint
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ query }),  // Send JSON in the body
-      });
-    
-      const data = await response.json();
-      console.log("Backend response:", data);
-    } catch (error) {
-      console.error("Error fetching data:", error);
-    }
-    
-    navigate(`/pageinfo?query=${encodeURIComponent(query)}`);
+    // Navigate to InfoPage with the query as a URL parameter
+    navigate(`/info?query=${encodeURIComponent(query)}`);
   };
 
   return (

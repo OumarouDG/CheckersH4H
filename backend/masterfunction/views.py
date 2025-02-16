@@ -41,7 +41,7 @@ class MasterQueryView(APIView):
         deepseek_response = requests.post(DEEPSEEK_API_URL, json={"query": deepseek_query})
 
         if deepseek_response.status_code != 200:
-            return Response({"error": "Failed to retrieve paragarph from DeepSeek."}, status=500)
+            return Response({"error": "Failed to retrieve paragraph from DeepSeek."}, status=500)
 
         paragraph = deepseek_response.json().get("response", "")
 
@@ -54,14 +54,21 @@ class MasterQueryView(APIView):
 
         confidence_scores = confidence_response.json().get("response", "").split()  # Assuming DeepSeek returns space-separated scores
 
-        # Step 6: Structure the Final JSON Response
+        # Step 6: Structure the Final JSON Response within "test" key
         final_response = {
-            "paragraph": paragraph,
-            "list": [
-                {"url": source["url"], "confidence_score": confidence_scores[i] if i < len(confidence_scores) else "N/A"}
-                for i, source in enumerate(sources)
-            ]
+            "test": {
+                "paragraph": paragraph,
+                "list": [
+                    {
+                        "title": source["title"],
+                        "link": source["url"],  # Change "url" to "link"
+                        "number": confidence_scores[i] if i < len(confidence_scores) else "N/A"
+                    }
+                    for i, source in enumerate(sources)
+                ]
+            }
         }
+
 
         return Response(final_response, status=status.HTTP_200_OK)
 

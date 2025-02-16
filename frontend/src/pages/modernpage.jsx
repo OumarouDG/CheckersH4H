@@ -58,7 +58,7 @@ const ModernPage = () => {
   return (
     <div style={{ backgroundColor: "black", height: "100vh", color: "white" }}>
       <Navbar />
-      <div style={{ padding: "20px" }}>
+      <div style={{ paddingTop: "50px", paddingLeft:"20px" }}>
         <h1>Trending Misinformation Topics</h1>
         <p>Here are some claims that need to be fact-checked to help you understand the truth!</p>
         <Box

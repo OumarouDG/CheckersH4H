@@ -15,7 +15,7 @@ const Instructions = () => {
     >
       {/* Team Name Header */}
       <Typography variant="h4" sx={{ color: "white", fontWeight: "bold", marginBottom: "16px" }}>
-        Team Name
+        Checkr
       </Typography>
 
       {/* Instructions */}

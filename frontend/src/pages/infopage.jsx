@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 
 const draw = {
@@ -24,20 +25,28 @@ const getColorForScore = (score) => {
   return "darkgreen";
 };
 
-const ModernPage = () => {
+const InfoPage = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const location = useLocation();
+
+  // Extract query from URL
+  const queryParams = new URLSearchParams(location.search);
+  const userQuery = queryParams.get("query") || "";
 
   // Function to fetch data
   const fetchData = () => {
+    if (!userQuery) {
+      setLoading(false);
+      return;
+    }
+
     fetch("http://127.0.0.1:8000/master-query/userquery/", {
-      method: "POST", // Use POST instead of GET
+      method: "POST",
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        query: "Is covid 19 real I heard its fake from yo mama"
-      })
+      body: JSON.stringify({ query: userQuery }) // Send the extracted query
     })
       .then((response) => response.json())
       .then((json) => {
@@ -48,32 +57,12 @@ const ModernPage = () => {
         console.error("Error fetching data:", error);
         setLoading(false);
       });
-  };  
+  };
 
-  // Initial fetch
+  // Fetch data when component mounts
   useEffect(() => {
     fetchData();
-  }, []);
-
-  // Polling mechanism to watch for changes in data
-  useEffect(() => {
-    const interval = setInterval(() => {
-      fetch("http://localhost:5050/api/data")
-        .then((response) => response.json())
-        .then((json) => {
-          // Only update state if data has changed
-          if (JSON.stringify(json) !== JSON.stringify(data)) {
-            setData(json);
-          }
-        })
-        .catch((error) => {
-          console.error("Error fetching data:", error);
-        });
-    }, 5000); // Poll every 5 seconds
-
-    // Cleanup interval on component unmount
-    return () => clearInterval(interval);
-  }, [data]); // Watch `data` for changes
+  }, [userQuery]);
 
   return (
     <div style={{
@@ -90,7 +79,7 @@ const ModernPage = () => {
     }}>
       <div style={{
         textAlign: "left",
-        maxWidth: "600px",
+        maxWidth: "400px",
         width: "90%",
         padding: "22px",
         background: "rgba(0, 0, 0, 0.8)",
@@ -98,7 +87,7 @@ const ModernPage = () => {
         overflow: "hidden",
       }}>
         {loading ? (
-          <p>Loading...</p>
+          <p>Loading It's Going To Take A...</p>
         ) : data === null ? (
           <h2 style={{ fontSize: "24px", fontWeight: "bold" }}>Nothing to analyze</h2>
         ) : (
@@ -124,7 +113,6 @@ const ModernPage = () => {
                     justifyContent: "space-between",
                     lineHeight: "1.8",
                   }}>
-                    {/* Left Section (Title + Link) - 70% */}
                     <div style={{
                       display: "flex",
                       flexDirection: "column",
@@ -150,8 +138,6 @@ const ModernPage = () => {
                         {item.link}
                       </a>
                     </div>
-
-                    {/* Right Section with Draw Animation */}
                     <div style={{
                       width: "30%",
                       textAlign: "center",
@@ -202,4 +188,4 @@ const ModernPage = () => {
   );
 };
 
-export default ModernPage;
+export default InfoPage;

@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework import status
 import requests
 
-DEEPSEEK_SERVER_URL = "https://your-deepseek-server.com/api"
+DEEPSEEK_SERVER_URL = "http://localhost:11434/api/generate"
 
 class DeepSeekQueryView(APIView):
     def post(self, request):
@@ -19,7 +19,7 @@ class DeepSeekQueryView(APIView):
             safe_query = json.dumps(query)  # This escapes quotes automatically
 
             # Send the request to DeepSeek
-            response = requests.post(DEEPSEEK_SERVER_URL, json={"query": safe_query})
+            response = requests.post(DEEPSEEK_SERVER_URL, json={"model": "deepseek-r1:8b","prompt": safe_query})
             response_text = response.text  # Get raw response
 
             # Process JSONL response from DeepSeek

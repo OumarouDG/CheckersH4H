@@ -21,5 +21,6 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('myapp.urls')),  # Include the app's URLs
     path('deepseek/', include('deepseek.urls')),
-    path('searchalgo/', include('searchalgo.urls'))
+    path('searchalgo/', include('searchalgo.urls')),
+    path("master-query/", include('masterfunction.urls')),
 ]

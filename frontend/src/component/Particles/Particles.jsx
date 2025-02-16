@@ -10,20 +10,20 @@ const ParticlesComponent = () => {
     },
     particles: {
       number: {
-        value: 50, // Number of particles
+        value: 60, // Number of particles
       },
       size: {
         value: 2, // Size of particles
       },
       move: {
         enable: true, // Particles will move
-        speed: 3, // Movement speed
+        speed: 1, // Movement speed
       },
       links: {
         enable: true, // Enable linking
-        distance: 200, // Distance to link particles
+        distance: 240, // Distance to link particles
         color: "#ffffff", // Link color (white)
-        opacity: 0.5, // Opacity of the links
+        opacity: 0.4, // Opacity of the links
         width: 1, // Link width
       },
     },

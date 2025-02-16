@@ -10,25 +10,21 @@ import sqlite3
 from fuzzywuzzy import fuzz
 import json
 
-# Load a more powerful SBERT model
 model = SentenceTransformer('all-mpnet-base-v2')
 
-# Ensure NLTK WordNet is downloaded
 nltk.download('wordnet')
 
-# Expand claim with synonyms
 def expand_with_synonyms(text):
     words = text.split()
     expanded_words = []
     for word in words:
         synonyms = wordnet.synsets(word)
         if synonyms:
-            expanded_words.append(synonyms[0].lemmas()[0].name())  # Use first synonym
+            expanded_words.append(synonyms[0].lemmas()[0].name())  
         else:
             expanded_words.append(word)
     return " ".join(expanded_words)
 
-# Connect to the SQLite database and fetch the titles, URLs, and IDs
 def fetch_data_from_db():
     conn = sqlite3.connect('scholar_data.db')
     cursor = conn.cursor()
@@ -38,42 +34,37 @@ def fetch_data_from_db():
     
     conn.close()
     
-    return rows  # List of tuples: (id, title, url)
+    return rows  
 
-# Normalize scores with Min-Max Scaling
 def min_max_rescale(scores):
     min_score = min(scores)
     max_score = max(scores)
 
     if max_score == min_score:
-        return [50 for _ in scores]  # If all scores are identical, set to 50
+        return [50 for _ in scores]  
 
     return [100 * (s - min_score) / (max_score - min_score) for s in scores]
 
-# Soft Matching (Levenshtein Distance)
 def fuzzy_match(claim, title):
-    return fuzz.partial_ratio(claim.lower(), title.lower()) / 100  # Normalize to 0-1 range
+    return fuzz.partial_ratio(claim.lower(), title.lower()) / 100  
 
-# Compute similarity using BM25 + SBERT + Fuzzy Matching
 def compare_claim_with_titles(claim, titles):
     expanded_claim = expand_with_synonyms(claim)
 
     if not titles:
         return []
 
-    # BM25 Filtering First
     tokenized_titles = [title.split() for title in titles]
     bm25 = BM25Okapi(tokenized_titles)
     claim_tokens = expanded_claim.split()
 
     bm25_scores = bm25.get_scores(claim_tokens)
 
-    # Select top 10 relevant titles based on BM25 ranking
     top_indices = sorted(range(len(bm25_scores)), key=lambda i: bm25_scores[i], reverse=True)[:200]
     top_titles = [titles[i] for i in top_indices]
 
-    claim_embedding = model.encode([expanded_claim])  # Encode expanded claim
-    title_embeddings = model.encode(top_titles)  # Encode only top BM25 titles
+    claim_embedding = model.encode([expanded_claim])  
+    title_embeddings = model.encode(top_titles)  
 
     similarities = cosine_similarity(claim_embedding, title_embeddings)[0]
 
@@ -97,34 +88,29 @@ def compare_claim_with_titles(claim, titles):
 
 class ClaimSearchView(APIView):
     def get(self, request, *args, **kwargs):
-        claim = request.query_params.get('claim', None)  # Fetch claim from query params
+        claim = request.query_params.get('claim', None)  
         if not claim:
             return Response({"error": "Claim parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Fetch titles, URLs, and IDs from the database
         rows = fetch_data_from_db()
 
-        titles = [row[1] for row in rows]  # Extract titles
-        ids = [row[0] for row in rows]  # Extract IDs
-        urls = [row[2] for row in rows]  # Extract URLs
+        titles = [row[1] for row in rows] 
+        ids = [row[0] for row in rows]  
+        urls = [row[2] for row in rows] 
 
-        # Compare the claim with extracted titles
         results = compare_claim_with_titles(claim, titles)
 
-        # Filter results based on score and sort by score in descending order
         filtered_results = [(title, score) for title, score in results if score >= 70]
         filtered_results.sort(key=lambda x: x[1], reverse=True)
         
 
-        # Get the top 3 results (or fewer if less than 3)
         top_results = filtered_results[:3]
 
-        # Create a JSON response with id, title, url, and score
         response = [
             {
-                "id": ids[titles.index(title)],  # Match ID based on title index
+                "id": ids[titles.index(title)],  
                 "title": title,
-                "url": urls[titles.index(title)],  # Match URL based on title index
+                "url": urls[titles.index(title)],  
                 "score": f"{score:.2f}"
             }
             for title, score in top_results

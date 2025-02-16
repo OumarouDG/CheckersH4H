@@ -4,8 +4,8 @@ from rest_framework.response import Response
 from rest_framework import status
 import json
 
-SEARCH_API_URL = "http://127.0.0.1:8000/searchalgo/search/"  # Update if different
-DEEPSEEK_API_URL = "http://127.0.0.1:8000/deepseek/query"  # Update if different
+SEARCH_API_URL = "http://127.0.0.1:8000/searchalgo/search/"  
+DEEPSEEK_API_URL = "http://127.0.0.1:8000/deepseek/query"  
 
 class MasterQueryView(APIView):
     def post(self, request):
@@ -14,7 +14,6 @@ class MasterQueryView(APIView):
         if not user_query:
             return Response({"error": "Query parameter is required."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Step 1: Get Relevant Sources from Search Algorithm App
         sources_response = requests.get(SEARCH_API_URL, params={"claim": user_query})
 
         if sources_response.status_code != 200:
@@ -22,22 +21,18 @@ class MasterQueryView(APIView):
 
         sources = sources_response.json()
 
-        # Edge Case: No sources found
         if not sources:
             return Response({"message": "No sources available for this claim."}, status=status.HTTP_200_OK)
 
-        # Step 2: Fetch Full Text from the Database
         full_texts = []
         for source in sources:
             source_id = source["id"]
-            full_text = self.get_full_text(source_id)  # Fetch from DB using ID
+            full_text = self.get_full_text(source_id)  
             if full_text:
                 full_texts.append({"id": source_id, "title": source["title"], "url": source["url"], "text": full_text})
 
-        # Step 3: Format Query for DeepSeek
         deepseek_query = self.format_deepseek_query(full_texts, user_query)
 
-        # Step 4: Send Query to DeepSeek for Summarization
         deepseek_response = requests.post(DEEPSEEK_API_URL, json={"query": deepseek_query})
 
         if deepseek_response.status_code != 200:
@@ -45,23 +40,21 @@ class MasterQueryView(APIView):
 
         paragraph = deepseek_response.json().get("response", "")
 
-        # Step 5: Request Confidence Scores from DeepSeek
         confidence_query = self.format_confidence_query(full_texts)
         confidence_response = requests.post(DEEPSEEK_API_URL, json={"query": confidence_query})
 
         if confidence_response.status_code != 200:
             return Response({"error": "Failed to retrieve confidence scores."}, status=500)
 
-        confidence_scores = confidence_response.json().get("response", "").split()  # Assuming DeepSeek returns space-separated scores
+        confidence_scores = confidence_response.json().get("response", "").split()  
 
-        # Step 6: Structure the Final JSON Response within "test" key
         final_response = {
             "test": {
                 "paragraph": paragraph,
                 "list": [
                     {
                         "title": source["title"],
-                        "link": source["url"],  # Change "url" to "link"
+                        "link": source["url"],  
                         "number": confidence_scores[i] if i < len(confidence_scores) else "N/A"
                     }
                     for i, source in enumerate(sources)

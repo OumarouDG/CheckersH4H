@@ -14,12 +14,9 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
-from django.contrib import admin
-from django.urls import path, include
+from django.urls import path
+from . import views
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('api/', include('myapp.urls')),  # Include the app's URLs
-    path('deepseek/', include('deepseek.urls')),
-    path('searchalgo/', include('searchalgo.urls'))
+    path('url-name', 'function-name'.views.search_view, name='new name'),
 ]

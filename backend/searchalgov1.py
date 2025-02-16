@@ -1,11 +1,10 @@
+import sqlite3
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
-import requests
-from bs4 import BeautifulSoup
 import nltk
 from nltk.corpus import wordnet
 from rank_bm25 import BM25Okapi
-import numpy as np
+import json
 from fuzzywuzzy import fuzz  # Levenshtein distance for soft matching
 
 # Load a more powerful SBERT model
@@ -26,19 +25,17 @@ def expand_with_synonyms(text):
             expanded_words.append(word)
     return " ".join(expanded_words)
 
-# Extract headlines from multiple web pages
-def extract_headlines_from_urls(urls):
-    """Extract headlines from multiple URLs."""
-    all_headlines = []
-    for url in urls:
-        try:
-            response = requests.get(url, timeout=5)
-            soup = BeautifulSoup(response.text, "html.parser")
-            headlines = [h.text.strip() for h in soup.find_all(["h1", "h2", "h3"])]
-            all_headlines.extend(headlines)
-        except Exception as e:
-            print(f"Error fetching {url}: {e}")
-    return all_headlines
+# Connect to the SQLite database and fetch the titles, URLs, and IDs
+def fetch_data_from_db():
+    conn = sqlite3.connect('scholar_data.db')
+    cursor = conn.cursor()
+    
+    cursor.execute("SELECT id, title, url FROM scholar_results")  # Assuming the table is named 'scholar_results'
+    rows = cursor.fetchall()
+    
+    conn.close()
+    
+    return rows  # List of tuples: (id, title, url)
 
 # Normalize scores with Min-Max Scaling
 def min_max_rescale(scores):
@@ -52,52 +49,52 @@ def min_max_rescale(scores):
     return [100 * (s - min_score) / (max_score - min_score) for s in scores]
 
 # Soft Matching (Levenshtein Distance)
-def fuzzy_match(claim, headline):
-    """Use Levenshtein Distance to measure soft similarity between claim and headline."""
-    return fuzz.partial_ratio(claim.lower(), headline.lower()) / 100  # Normalize to 0-1 range
+def fuzzy_match(claim, title):
+    """Use Levenshtein Distance to measure soft similarity between claim and title."""
+    return fuzz.partial_ratio(claim.lower(), title.lower()) / 100  # Normalize to 0-1 range
 
 # Compute similarity using BM25 + SBERT + Fuzzy Matching
-def compare_claim_with_headlines(claim, headlines):
+def compare_claim_with_titles(claim, titles):
     expanded_claim = expand_with_synonyms(claim)  # Expand claim with synonyms
 
-    if not headlines:
-        return []  # Return empty if no headlines were extracted
+    if not titles:
+        return []  # Return empty if no titles were extracted
 
     # BM25 Filtering First
-    tokenized_headlines = [headline.split() for headline in headlines]
-    bm25 = BM25Okapi(tokenized_headlines)
+    tokenized_titles = [title.split() for title in titles]
+    bm25 = BM25Okapi(tokenized_titles)
     claim_tokens = expanded_claim.split()
 
     # Get BM25 scores
     bm25_scores = bm25.get_scores(claim_tokens)
 
-    # Select top 10 relevant headlines based on BM25 ranking
+    # Select top 10 relevant titles based on BM25 ranking
     top_indices = sorted(range(len(bm25_scores)), key=lambda i: bm25_scores[i], reverse=True)[:200]
-    top_headlines = [headlines[i] for i in top_indices]
+    top_titles = [titles[i] for i in top_indices]
 
     # Use SBERT for Final Similarity Score
     claim_embedding = model.encode([expanded_claim])  # Encode expanded claim
-    headline_embeddings = model.encode(top_headlines)  # Encode only top BM25 headlines
+    title_embeddings = model.encode(top_titles)  # Encode only top BM25 titles
 
-    similarities = cosine_similarity(claim_embedding, headline_embeddings)[0]  # Compute similarity
+    similarities = cosine_similarity(claim_embedding, title_embeddings)[0]  # Compute similarity
 
     # Rescale Similarity Scores
     rescaled_similarities = min_max_rescale(similarities)
 
     # Apply Fuzzy NLP Matching
-    fuzzy_scores = [fuzzy_match(expanded_claim, h) * 100 for h in top_headlines]
+    fuzzy_scores = [fuzzy_match(expanded_claim, t) * 100 for t in top_titles]
 
     # Compute Hybrid Score (90% SBERT, 10% BM25, + Fuzzy Matching)
     final_scores = [
         (
-            top_headlines[i],
+            top_titles[i],
             0.9 * rescaled_similarities[i] + 0.1 * bm25_scores[top_indices[i]] + 0.1 * fuzzy_scores[i],
         )
-        for i in range(len(top_headlines))
+        for i in range(len(top_titles))
     ]
 
     # Clip Scores to 0-100
-    final_scores = [(headline, min(max(score, 0), 100)) for headline, score in final_scores]
+    final_scores = [(title, min(max(score, 0), 100)) for title, score in final_scores]
 
     # Rank by highest score
     final_scores.sort(key=lambda x: x[1], reverse=True)
@@ -105,33 +102,36 @@ def compare_claim_with_headlines(claim, headlines):
     return final_scores
 
 # **Test Case**
-claim = "Immigrants are eating pets"
+claim = "Are jewish people using laser from space to control the weather"
 
-# **Multiple News Sites**
-urls = [
-    "https://www.nbcnews.com/politics/2024-election/trump-pushes-baseless-claim-immigrants-eating-pets-rcna170537",
-    "https://www.bbc.com/news/articles/c77l28myezko",
-    "https://www.cnn.com/2024/02/15/politics/trump-immigrants-pet-consumption-fact-check/index.html",
-    "https://theconversation.com/no-immigrants-arent-eating-dogs-and-cats-but-trumps-claim-is-part-of-an-ugly-history-of-myths-about-immigrant-foodways-239343",
-    "https://www.nytimes.com/2024/09/10/us/politics/trump-debate-immigrants-pets.html", 
-    "https://www.nytimes.com/2025/02/13/nyregion/drone-lost-pets.html", 
-    "https://www.barrons.com/articles/buy-freshpet-stock-price-pick-5e88eb80", 
-    "https://www.nbcnews.com/news/latino/trump-immigrants-republicans-latino-voter-concerns-deportation-rcna192029", 
-    "https://abcnews.go.com/US/wireStory/us-deports-immigrants-venezuela-after-judge-blocked-transfer-118850147"
-    
-    
-    
+# Fetch titles, URLs, and IDs from the database
+rows = fetch_data_from_db()
+
+# Extract titles from the database rows
+titles = [row[1] for row in rows]  # Extract the title (second column)
+ids = [row[0] for row in rows]  # Extract the ID (first column)
+urls = [row[2] for row in rows]  # Extract the URL (third column)
+
+# Compare the claim with extracted titles
+results = compare_claim_with_titles(claim, titles)
+
+# Filter results based on score and sort by score in descending order
+filtered_results = [(title, score) for title, score in results if score >= 70]
+filtered_results.sort(key=lambda x: x[1], reverse=True)
+
+# Get the top 3 results (or fewer if less than 3)
+top_results = filtered_results[:3]
+
+# Create a JSON format response with id, title, url, and score
+response = [
+    {
+        "id": ids[titles.index(title)],  # Match ID based on the title index
+        "title": title,
+        "url": urls[titles.index(title)],  # Match URL based on the title index
+        "score": f"{score:.2f}"
+    }
+    for title, score in top_results
 ]
 
-# Extract headlines from multiple news sites
-headlines = extract_headlines_from_urls(urls)
-
-# Compare the claim with extracted headlines
-results = compare_claim_with_headlines(claim, headlines)
-
-# Display results
-if results:
-    for headline, score in results:
-        print(f"Hybrid Similarity Score: {score:.2f} | Headline: {headline}")
-else:
-    print("No relevant headlines found.")
+# Print the JSON response
+print(json.dumps(response, indent=4))

@@ -30,7 +30,15 @@ const ModernPage = () => {
 
   // Function to fetch data
   const fetchData = () => {
-    fetch("http://localhost:5050/api/data")
+    fetch("http://127.0.0.1:8000/master-query/userquery/", {
+      method: "POST", // Use POST instead of GET
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        query: "Is covid 19 real I heard its fake from yo mama"
+      })
+    })
       .then((response) => response.json())
       .then((json) => {
         setData(json);
@@ -40,7 +48,7 @@ const ModernPage = () => {
         console.error("Error fetching data:", error);
         setLoading(false);
       });
-  };
+  };  
 
   // Initial fetch
   useEffect(() => {

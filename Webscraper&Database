@@ -1,7 +1,6 @@
 import requests
 from bs4 import BeautifulSoup
 import sqlite3
-import os
 from urllib.parse import urljoin
 
 response = requests.get('https://httpbin.org/user-agent')
@@ -44,7 +43,6 @@ def getScholarData(url, user_agent=user_agent):
         print(f"An error occurred: {e}")
         return []
 
-
 def init_db():
     conn = sqlite3.connect('scholar_data.db')
     c = conn.cursor()
@@ -53,7 +51,7 @@ def init_db():
     c.execute("DROP TABLE IF EXISTS scholar_results")
 
     # Recreate the table with the correct schema
-    c.execute('''
+    c.execute(''' 
         CREATE TABLE IF NOT EXISTS scholar_results (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             topic TEXT,
@@ -69,7 +67,6 @@ def init_db():
     ''')
     conn.commit()
     conn.close()
-
 
 def insert_data(topic, title, website_link, displayed_link, snippet, cited_by_count, cited_link, versions_count, versions_link):
     conn = sqlite3.connect('scholar_data.db')
@@ -95,6 +92,29 @@ def download_and_store_websites(topics):
             # Save the website link and title in the database (excluding PDFs)
             insert_data(topic, result['title'], website_url, result['displayed_link'], result['snippet'], result['cited_by_count'], result['cited_link'], result['versions_count'], result['versions_link'])
 
+def display_db_contents():
+    # Connect to the SQLite database
+    conn = sqlite3.connect('scholar_data.db')
+    c = conn.cursor()
+
+    # Fetch all rows from the scholar_results table
+    c.execute('SELECT * FROM scholar_results')
+    rows = c.fetchall()
+
+    # Check if there are any results and print them
+    if rows:
+        print("Displaying all rows from scholar_results:")
+        for row in rows:
+            print(row)  # This will print each row as a tuple
+    else:
+        print("No data found in scholar_results.")
+
+    conn.close()
+
+# Run the entire process
 init_db()
 topics = ["Medical Devices", "Artificial Intelligence"]
 download_and_store_websites(topics)
+
+# Display the contents of the database
+display_db_contents()

@@ -1,4 +1,7 @@
 .input-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     position: absolute;
     bottom: 20px; /* Adjusts how far it is from the bottom */
     left: 50%;

@@ -1,25 +1,34 @@
 import React from "react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-import "./InputField.scss"; // Import SCSS for styling
 
 const InputField = () => {
   return (
-    <div className="input-container">
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: "10px",
+        position: "absolute",
+        bottom: "20px", // Adjusts how far it is from the bottom
+        left: "50%",
+        transform: "translateX(-50%)",
+        zIndex: 2, // Ensures it's above other elements
+      }}
+    >
       <TextField
         id="outlined-basic"
         placeholder="Enter Claim"
         variant="outlined"
-        className="text-field"
         sx={{
           backgroundColor: "white",
           borderRadius: "5px",
           input: { color: "black" }, // Ensure text inside is visible
+          width: "180px", // Adjust as needed
         }}
       />
       <Button
         variant="contained"
-        className="run-button"
         sx={{
           backgroundColor: "white",
           color: "black",
@@ -28,7 +37,7 @@ const InputField = () => {
           "&:hover": { backgroundColor: "#f0f0f0" }, // Slightly darker hover effect
         }}
       >
-        run
+        Run
       </Button>
     </div>
   );

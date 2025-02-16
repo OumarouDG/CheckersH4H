@@ -1,0 +1,148 @@
+import requests
+from bs4 import BeautifulSoup
+import sqlite3
+from urllib.parse import urljoin
+import urllib.request
+
+response = requests.get('https://httpbin.org/user-agent')
+user_agent = response.json()['user-agent']
+
+def getScholarData(url, user_agent=user_agent):
+    try:
+        headers = {
+            "User-Agent": user_agent
+        }
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.text, 'html.parser')
+        scholar_results = []
+
+        for el in soup.select(".gs_r")[:3]:  # Limit to top 3 results
+            title_link = el.select(".gs_rt a")[0]["href"] if el.select(".gs_rt a") else ""
+            # Only process links that are not PDFs
+            if not title_link.lower().endswith('.pdf'):
+                scholar_results.append({
+                    "title": el.select(".gs_rt")[0].text if el.select(".gs_rt") else None,
+                    "title_link": title_link,
+                    "id": el.select(".gs_rt a")[0]["href"] if el.select(".gs_rt a") else "",
+                    "displayed_link": el.select(".gs_a")[0].text if el.select(".gs_a") else "",
+                    "snippet": el.select(".gs_rs")[0].text.replace("\n", "") if el.select(".gs_rs") else "",
+                    "cited_by_count": el.select(".gs_nph+ a")[0].text if el.select(".gs_nph+ a") else "",
+                    "cited_link": "https://scholar.google.com" + el.select(".gs_nph+ a")[0]["href"] if el.select(".gs_nph+ a") and len(el.select(".gs_nph+ a")) > 0 else None,
+                    "versions_count": el.select("a~ a+ .gs_nph")[0].text if el.select("a~ a+ .gs_nph") and len(el.select("a~ a+ .gs_nph")) > 0 else "",
+                    "versions_link": "https://scholar.google.com" + el.select("a~ a+ .gs_nph")[0]["href"] if el.select("a~ a+ .gs_nph") and len(el.select("a~ a+ .gs_nph")) > 0 and el.select("a~ a+ .gs_nph")[0].text else "",
+                })
+        # Filter out items with empty or None values
+        for i in range(len(scholar_results)):
+            scholar_results[i] = {key: value for key, value in scholar_results[i].items() if value != "" and value is not None}
+
+        return scholar_results
+    except requests.exceptions.RequestException as e:
+        print(f"Request error: {e}")
+        return []
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        return []
+
+def get_full_text(url):
+    """Get the full text of an article from the URL"""
+    try:
+        html = urllib.request.urlopen(url).read()
+        soup = BeautifulSoup(html, 'html.parser')
+
+        # Remove script and style elements
+        for script in soup(["script", "style"]):
+            script.extract()
+
+        # Get the text from the page
+        text = soup.get_text()
+
+        # Clean and process the text
+        lines = (line.strip() for line in text.splitlines())
+        chunks = (phrase.strip() for line in lines for phrase in line.split("  "))
+        text = '\n'.join(chunk for chunk in chunks if chunk)
+        
+        return text
+    except Exception as e:
+        print(f"Error retrieving full text: {e}")
+        return ""
+
+def init_db():
+    conn = sqlite3.connect('scholar_data.db')
+    c = conn.cursor()
+
+    # Drop the table if it exists
+    c.execute("DROP TABLE IF EXISTS scholar_results")
+
+    # Recreate the table with the correct schema (added full_text column)
+    c.execute(''' 
+        CREATE TABLE IF NOT EXISTS scholar_results (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic TEXT,
+            title TEXT,
+            website_link TEXT,
+            displayed_link TEXT,
+            snippet TEXT,
+            cited_by_count TEXT,
+            cited_link TEXT,
+            versions_count TEXT,
+            versions_link TEXT,
+            full_text TEXT
+        )
+    ''')
+    conn.commit()
+    conn.close()
+
+def insert_data(topic, title, website_link, displayed_link, snippet, cited_by_count, cited_link, versions_count, versions_link, full_text):
+    conn = sqlite3.connect('scholar_data.db')
+    c = conn.cursor()
+    c.execute(''' 
+        INSERT INTO scholar_results (topic, title, website_link, displayed_link, snippet, cited_by_count, cited_link, versions_count, versions_link, full_text)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (topic, title, website_link, displayed_link, snippet, cited_by_count, cited_link, versions_count, versions_link, full_text))
+    conn.commit()
+    conn.close()
+
+def download_and_store_websites(topics):
+    """Main function to download, process, and store website links"""
+    base_url = "https://www.google.com/scholar?q={}&hl=en"
+    for topic in topics:
+        url = base_url.format(topic.replace(" ", "+"))
+        results = getScholarData(url)
+        for result in results:
+            # Get the website URL from the search result
+            website_url = result['title_link']
+            website_url = urljoin("https://scholar.google.com", website_url)  # Ensure the URL is absolute
+            
+            # Scrape the full text of the article (if available)
+            full_text = get_full_text(website_url)
+
+            # Save the website link and title in the database (excluding PDFs)
+            insert_data(topic, result['title'], website_url, result['displayed_link'], result['snippet'], result['cited_by_count'], result['cited_link'], result['versions_count'], result['versions_link'], full_text)
+
+def display_db_contents():
+    # Connect to the SQLite database
+    conn = sqlite3.connect('scholar_data.db')
+    c = conn.cursor()
+
+    # Fetch all rows from the scholar_results table
+    c.execute('SELECT * FROM scholar_results')
+    rows = c.fetchall()
+
+    # Check if there are any results and print them
+    if rows:
+        print("Displaying all rows from scholar_results:")
+        for row in rows:
+            print(row)  # This will print each row as a tuple
+    else:
+        print("No data found in scholar_results.")
+
+    conn.close()
+
+# Run the entire process
+init_db()
+topics = ["Countries", "Artificial Intelligence"]
+download_and_store_websites(topics)
+
+# Display the contents of the database
+display_db_contents()

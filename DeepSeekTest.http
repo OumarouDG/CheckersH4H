@@ -1,0 +1,8 @@
+POST http://localhost:11434/api/generate
+
+{
+    "model": "deepseek-r1:8b",
+
+    "prompt": "What is Artificial Intelligence"
+
+}

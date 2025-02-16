@@ -1,21 +1,21 @@
 import React from 'react';
-import './App.css';
-import Navbar from "./component/Navbar/Navbar";
-import Instructions from "./component/Instructions/Instructions";
-import ParticlesComponent from './component/Particles/Particles'; 
-import InputField from './component/InputField/InputField';
+import { HashRouter as Router, Route, Routes } from 'react-router-dom';
+import Navbar from './component/Navbar/Navbar';
+import HomePage from './pages/homepage'; // Ensure file path is correct
+import ModernPage from './pages/modernpage'; // Ensure file path is correct
+import InfoPage from './pages/infopage';
 
-function App() {
+const App = () => {
   return (
-    <div className="App">
-      <ParticlesComponent id="tsparticles" />
-      <Navbar></Navbar>
-      <header className="App-header">
-        <Instructions></Instructions>
-      </header>
-      <InputField></InputField>
-    </div>
+    <Router>
+      <Navbar />
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/news" element={<ModernPage />} />
+        <Route path="/info" element={<InfoPage />} />
+      </Routes>
+    </Router>
   );
-}
+};
 
 export default App;

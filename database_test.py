@@ -64,6 +64,9 @@ def init_db():
     conn = sqlite3.connect('scholar_data.db')
     c = conn.cursor()
 
+    # Drop the table if it exists
+    c.execute("DROP TABLE IF EXISTS scholar_results")
+
     # Recreate the table without the topic column
     c.execute(''' 
         CREATE TABLE IF NOT EXISTS scholar_results (
@@ -145,7 +148,7 @@ def load_topics_from_file(file_path):
 init_db()
 
 # Load topics from a text file (one topic per line)
-topics_file = r"C:\Users\iegre\OneDrive\Documents\GitHub\CheckersH4H\backend\research_topics.txt"
+topics_file = 'C:/Users/iegre/VSCode/research_topics.txt'
 topics = load_topics_from_file(topics_file)
 
 # List of sites to scrape

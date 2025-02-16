@@ -3,38 +3,37 @@ import { loadSlim } from "tsparticles-slim";
 import { useCallback, useMemo } from "react";
 
 const ParticlesComponent = () => {
-  // Particle configuration options
+
   const options = useMemo(() => ({
     background: {
-      color: "#000", // black background
+      color: "#000", 
     },
     particles: {
       number: {
-        value: 60, // Number of particles
+        value: 60,
       },
       size: {
-        value: 2, // Size of particles
+        value: 2,
       },
       move: {
-        enable: true, // Particles will move
-        speed: 1, // Movement speed
+        enable: true, 
+        speed: 1, 
       },
       links: {
-        enable: true, // Enable linking
-        distance: 200, // Distance to link particles
-        color: "#ffffff", // Link color (white)
-        opacity: 0.4, // Opacity of the links
-        width: 1, // Link width
+        enable: true, 
+        distance: 200, 
+        color: "#ffffff", 
+        opacity: 0.4, 
+        width: 1, 
       },
     },
   }), []);
 
-  // Initialize particles engine with loadSlim
   const particlesInit = useCallback((engine) => {
-    loadSlim(engine); // Load the slim version of the engine
+    loadSlim(engine); 
   }, []);
 
-  // Render the Particles component
+
   return <Particles id="tsparticles" init={particlesInit} options={options} />;
 };
 

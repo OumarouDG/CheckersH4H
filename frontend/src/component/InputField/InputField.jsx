@@ -17,7 +17,6 @@ const InputField = () => {
       return;
     }
 
-    // Navigate to InfoPage with the query as a URL parameter
     navigate(`/info?query=${encodeURIComponent(query)}`);
   };
 

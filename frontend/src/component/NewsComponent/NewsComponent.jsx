@@ -15,12 +15,12 @@ const NewsArticle = ({ title, icon }) => {
         color: "white",
       }}
     >
-      {/* Icon */}
+
       <Box sx={{ marginRight: "12px", display: "flex", justifyContent: "center", alignItems: "center" }}>
         {icon && <Icon sx={{ color: "white", fontSize: "30px" }}>{icon}</Icon>}
       </Box>
 
-      {/* Title */}
+
       <Typography variant="h6" sx={{ flexGrow: 1, margin: 0 }}>
         {title}
       </Typography>

@@ -1,11 +1,88 @@
 import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { motion } from "framer-motion";
+import { motion, useAnimate } from "framer-motion";
+
+
+const loadingContainer = {
+  width: "4rem", 
+  height: "4rem", 
+  display: "flex",
+  justifyContent: "center",
+  alignItems: "center",
+  gap: "12px", 
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)" 
+};
+
+const loadingCircle = {
+  display: "block",
+  width: "1rem", 
+  height: "1rem", 
+  backgroundColor: "white", 
+  borderRadius: "50%"
+};
+
+const loadingContainerVariants = {
+  start: {
+    transition: {
+      staggerChildren: 0.2 
+    }
+  },
+  end: {
+    transition: {
+      staggerChildren: 0.2
+    }
+  }
+};
+
+const loadingCircleVariants = {
+  start: {
+    y: "0%"
+  },
+  end: {
+    y: ["0%", "-50%", "0%"] 
+  }
+};
+
+const loadingCircleTransition = {
+  duration: 0.6, 
+  repeat: Infinity, 
+  ease: "easeInOut"
+};
+
+export const ThreeDotsWave = () => {
+  return (
+    <motion.div
+      style={loadingContainer}
+      variants={loadingContainerVariants}
+      initial="start"
+      animate="end"
+    >
+      <motion.span
+        style={loadingCircle}
+        variants={loadingCircleVariants}
+        transition={loadingCircleTransition}
+      />
+      <motion.span
+        style={loadingCircle}
+        variants={loadingCircleVariants}
+        transition={loadingCircleTransition}
+      />
+      <motion.span
+        style={loadingCircle}
+        variants={loadingCircleVariants}
+        transition={loadingCircleTransition}
+      />
+    </motion.div>
+  );
+};
 
 const draw = {
   hidden: { pathLength: 0, opacity: 0 },
   visible: (i) => {
-    const delay = i * 0.5;
+    const delay = 1 + i * 0.5;
     return {
       pathLength: 1,
       opacity: 1,
@@ -46,7 +123,7 @@ const InfoPage = () => {
       headers: {
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({ query: userQuery }) // Send the extracted query
+      body: JSON.stringify({ query: userQuery }) 
     })
       .then((response) => response.json())
       .then((json) => {
@@ -59,7 +136,6 @@ const InfoPage = () => {
       });
   };
 
-  // Fetch data when component mounts
   useEffect(() => {
     fetchData();
   }, [userQuery]);
@@ -87,7 +163,7 @@ const InfoPage = () => {
         overflow: "hidden",
       }}>
         {loading ? (
-          <p>Loading It's Going To Take A...</p>
+          <ThreeDotsWave />
         ) : data === null ? (
           <h2 style={{ fontSize: "24px", fontWeight: "bold" }}>Nothing to analyze</h2>
         ) : (

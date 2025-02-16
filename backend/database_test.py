@@ -148,7 +148,7 @@ def load_topics_from_file(file_path):
 init_db()
 
 # Load topics from a text file (one topic per line)
-topics_file = 'C:/Users/iegre/VSCode/research_topics.txt'
+topics_file = 'research_topics.txt'
 topics = load_topics_from_file(topics_file)
 
 # List of sites to scrape

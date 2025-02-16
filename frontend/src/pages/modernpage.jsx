@@ -1,6 +1,5 @@
 import React from "react";
-import Navbar from "../component/Navbar/Navbar"; // Adjust path as necessary
-import NewsArticle from "../component/NewsComponent/NewsComponent"; // Adjust path as necessary
+import Navbar from "../component/Navbar/Navbar"; 
 import { Box, Icon } from "@mui/material"; 
 import HowToVoteIcon from '@mui/icons-material/HowToVote'; 
 import HealthAndSafetyIcon from '@mui/icons-material/HealthAndSafety'; 
@@ -58,15 +57,10 @@ const jsonData = [
 const ModernPage = () => {
   return (
     <div style={{ backgroundColor: "black", height: "100vh", color: "white" }}>
-      {/* Navbar */}
       <Navbar />
-
-      {/* Page Content */}
       <div style={{ padding: "20px" }}>
         <h1>Trending Misinformation Topics</h1>
         <p>Here are some claims that need to be fact-checked to help you understand the truth!</p>
-
-        {/* Scrollable List of Misinformation Claims */}
         <Box
           sx={{
             height: "75vh",
@@ -91,12 +85,9 @@ const ModernPage = () => {
                 color: "white"
               }}
             >
-              {/* Icon */}
               <Box sx={{ marginRight: "12px" }}>
                 {item.icon}
               </Box>
-
-              {/* Title */}
               <div style={{ flexGrow: 1 }}>
                 <h3>{item.title}</h3>
                 <p>{item.factCheck}</p>

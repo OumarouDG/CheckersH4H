@@ -76,10 +76,7 @@ def download_pdf(url, filename, retries=3):
             response = requests.get(url)
             response.raise_for_status()
             
-            # Check if the response is HTML instead of PDF
-            if 'text/html' in response.headers.get('Content-Type', ''):
-                print(f"Received HTML response when downloading {url}, skipping.")
-                return False
+            
 
             with open(filename, 'wb') as file:
                 file.write(response.content)
@@ -89,18 +86,7 @@ def download_pdf(url, filename, retries=3):
             print(f"Attempt {attempt + 1} failed: {e}")
     return False
 
-def is_valid_pdf(filename):
-    """Check if the file is a valid PDF by verifying the magic number '%PDF'"""
-    try:
-        with open(filename, 'rb') as file:
-            first_bytes = file.read(4)
-            if first_bytes != b'%PDF':
-                print(f"{filename} is not a valid PDF (magic number mismatch).")
-                return False
-            return True
-    except Exception as e:
-        print(f"Error checking validity of {filename}: {e}")
-        return False
+
 
 def is_encrypted_pdf(filename):
     """Check if the PDF is encrypted"""
@@ -121,9 +107,7 @@ def check_pdf_validity(filename):
     if is_encrypted_pdf(filename):
         return False
     
-    # Check if the file is a valid PDF
-    if not is_valid_pdf(filename):
-        return False
+    
 
     try:
         with open(filename, 'rb') as file:
@@ -161,7 +145,7 @@ def store_pdf_info(db_name, filename, info, text):
     conn = sqlite3.connect(db_name)
     cursor = conn.cursor()
     
-    cursor.execute('''
+    cursor.execute(''' 
         CREATE TABLE IF NOT EXISTS pdfs (
             id INTEGER PRIMARY KEY,
             filename TEXT,

@@ -1,0 +1,10 @@
+POST http://localhost:11434/api/generate
+
+{
+    "model": "deepseek-r1:8b",
+<<<<<<< HEAD
+    "prompt": "How healthy are pocky"
+=======
+    "prompt": "Give me an easy date idea"
+>>>>>>> 81c71c33cf6d1d61c51fd4a90cab325649a23840
+}

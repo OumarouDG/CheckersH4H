@@ -1,8 +1,20 @@
 import React from "react";
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 import { Link } from "react-router-dom"; // Import for routing
 import { AppBar, Toolbar, IconButton, Typography } from "@mui/material";
 import { Home, Person, Settings, Article } from "@mui/icons-material"; // Import Article icon
+=======
+import { Link } from "react-router-dom";
+import { AppBar, Toolbar, IconButton, Typography } from "@mui/material";
+import { Home, Article, Settings, Person } from "@mui/icons-material";
+>>>>>>> Stashed changes
+=======
+import { Link } from "react-router-dom";
+import { AppBar, Toolbar, IconButton, Typography } from "@mui/material";
+import { Home, Article, Settings, Person } from "@mui/icons-material";
+>>>>>>> Stashed changes
 =======
 import { Link } from "react-router-dom";
 import { AppBar, Toolbar, IconButton, Typography } from "@mui/material";
@@ -12,6 +24,8 @@ import { Home, Article, Settings, Person } from "@mui/icons-material";
 const Navbar = () => {
   return (
     <AppBar
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
       position="static"
       sx={{
@@ -51,6 +65,10 @@ const Navbar = () => {
             <Article fontSize="small" />
             <Typography variant="body2" sx={{ marginLeft: 0.5, color: "white" }}>
 =======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
       position="fixed" // Keeps it at the top
       sx={{
         backgroundColor: "#000000",
@@ -76,13 +94,25 @@ const Navbar = () => {
           <IconButton sx={{ color: "white" }}>
             <Article fontSize="small" />
             <Typography variant="body2" sx={{ marginLeft: 0.5 }}>
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
               Modern News
             </Typography>
           </IconButton>
         </Link>
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
         
         {/* Profile button updated to link to /info page */}
         <Link to="/info" style={{ textDecoration: "none", color: "white" }}>
@@ -100,6 +130,12 @@ const Navbar = () => {
             Settings
           </Typography>
         </IconButton>
+<<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
       </Toolbar>
     </AppBar>

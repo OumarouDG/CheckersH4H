@@ -31,7 +31,7 @@ const Navbar = () => {
           <IconButton sx={{ color: "white" }}>
             <Article fontSize="small" />
             <Typography variant="body2" sx={{ marginLeft: 0.5 }}>
-              Modern News
+              News
             </Typography>
           </IconButton>
         </Link>
